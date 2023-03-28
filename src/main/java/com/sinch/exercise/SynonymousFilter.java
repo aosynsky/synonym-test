@@ -1,14 +1,22 @@
 package com.sinch.exercise;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SynonymousFilter {
 
+  private final Map<String, String> synonyms = new HashMap<>();
+
   public SynonymousFilter(List<Pair<String, String>> synonymPairs) {
-    // TODO: implement
+    for (var p : synonymPairs) {
+      synonyms.put(p.getLeft(), p.getRight());
+      synonyms.put(p.getRight(), p.getLeft());
+    }
   }
 
   /**
@@ -19,7 +27,27 @@ public class SynonymousFilter {
    */
   public List<Pair<String, String>> filter(List<Pair<String, String>> sentencePairs) {
     // TODO: implement
-    return Collections.emptyList();
+    return sentencePairs.stream()
+        .filter(this::isSynonym)
+        .collect(Collectors.toList());
+  }
+
+  private boolean isSynonym(Pair<String, String> s) {
+    var l = s.getLeft().split(" ");
+    var r = s.getRight().split(" ");
+    if (l.length != r.length) {
+      return false;
+    }
+    for (int i = 0; i < l.length; i++) {
+      if (!l[i].equals(r[i]) && !synonyms.containsKey(l[i])) {
+        return false;
+      }
+      if (synonyms.containsKey(l[i])
+          && !r[i].equals(synonyms.get(l[i]))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -30,6 +58,7 @@ public class SynonymousFilter {
    */
   public Stream<Pair<String, String>> filter(Stream<Pair<String, String>> candidateSentencePairs) {
     // TODO: implement
-    return Stream.empty();
+    return candidateSentencePairs
+        .filter(this::isSynonym);
   }
 }
